@@ -274,6 +274,64 @@ export const CaseDetailDrawer: React.FC<CaseDetailDrawerProps> = ({
                 )}
               </div>
             )}
+
+            {/* Omnichannel Outreach Live WhatsApp Preview */}
+            <div className="p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--bg-border)] space-y-3 font-sans">
+              <div className="flex items-center justify-between">
+                <span className="font-syne font-bold text-sm text-[var(--text-primary)] flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>WhatsApp Outreach Live Preview</span>
+                </span>
+                <span className="badge-pill badge-recovered text-[9px]">Verified TRAI 140</span>
+              </div>
+
+              {/* Simulated WhatsApp Phone Frame */}
+              <div className="rounded-xl bg-[#0B141A] border border-emerald-900/60 overflow-hidden shadow-inner font-sans">
+                {/* WhatsApp Chat Top Bar */}
+                <div className="bg-[#1F2C34] px-3.5 py-2.5 flex items-center justify-between border-b border-emerald-900/40">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-[10px]">
+                      RS
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-white leading-tight">Acme SaaS Support</div>
+                      <div className="text-[9px] text-emerald-400 font-mono">Official Business Account • Verified</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* WhatsApp Message Bubble */}
+                <div className="p-3.5 space-y-2 text-xs text-slate-100 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-950/20 to-[#0B141A]">
+                  <div className="p-3 rounded-lg bg-[#005C4B] border border-emerald-500/30 text-white space-y-2 shadow-sm">
+                    <p className="leading-relaxed">
+                      Hi <strong>{leakData.customer?.name || 'Customer'}</strong>! 👋
+                    </p>
+                    <p className="leading-relaxed text-[11px]">
+                      We noticed your recurring subscription payment for <strong>Acme SaaS</strong> was interrupted due to a temporary bank timeout.
+                    </p>
+                    <div className="p-2 rounded bg-[#004B3D] border border-emerald-400/20 text-[11px] font-mono">
+                      💳 Amount Due: <strong>{formatPaiseToINR(leakData.amountAtRiskPaise || 249900)}</strong>
+                    </div>
+                    <p className="text-[11px] leading-relaxed">
+                      Click below to instantly complete your payment via Razorpay 1-Click checkout link:
+                    </p>
+
+                    {/* Interactive Button inside WhatsApp */}
+                    <button
+                      onClick={() => onOpenCheckoutModal(leakData)}
+                      className="w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded text-xs flex items-center justify-center gap-1.5 shadow-md transition-colors"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Pay {formatPaiseToINR(leakData.amountAtRiskPaise || 249900)} via Razorpay</span>
+                    </button>
+
+                    <div className="text-[9px] text-emerald-200/70 text-right font-mono pt-1">
+                      Sent 1m ago • Delivered ✓✓
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         ) : null}
       </div>

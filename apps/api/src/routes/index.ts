@@ -58,3 +58,4 @@ router.post('/demo/churn-risk', demoController.triggerChurnRisk);
 router.post('/demo/voice-recovery', demoController.triggerVoiceRecovery);
 router.post('/demo/multi-agent-conflict', demoController.triggerMultiAgentConflict);
 router.post('/demo/reset-database', demoController.resetDatabase);
+router.post('/demo/custom-event', demoController.triggerCustomEvent);

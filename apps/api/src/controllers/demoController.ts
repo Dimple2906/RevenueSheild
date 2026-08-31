@@ -416,5 +416,59 @@ export const demoController = {
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
+  },
+
+  // Inject Custom Revenue Leak Event
+  async triggerCustomEvent(req: Request, res: Response) {
+    try {
+      const { 
+        customerName = 'Custom Merchant Client',
+        customerEmail = 'client@example.com',
+        customerPhone = '+919876543210',
+        leakType = 'SUBSCRIPTION_FAILURE',
+        leakStage = 'AT_PAYMENT',
+        amountPaise = 350000,
+        description = 'Custom payment failure injected via War Room Console'
+      } = req.body;
+
+      const agentMap: Record<string, AgentType> = {
+        'SUBSCRIPTION_FAILURE': AgentType.SUBSCRIPTION_RECOVERY,
+        'CHECKOUT_ABANDONMENT': AgentType.CHECKOUT_RECOVERY,
+        'OVERDUE_INVOICE': AgentType.RECEIVABLES,
+        'MANDATE_EXPIRY': AgentType.MANDATE_RENEWAL,
+        'REFUND_REQUEST': AgentType.REFUND_RECOVERY,
+        'PAYMENT_DEGRADATION': AgentType.INFRASTRUCTURE_GUARD
+      };
+
+      const assignedAgent = agentMap[leakType] || AgentType.SUBSCRIPTION_RECOVERY;
+
+      const event: InternalRevenueEvent = {
+        id: `leak_custom_${Date.now().toString(36)}`,
+        merchantId: 'merchant_acme_01',
+        leakType: leakType as LeakType,
+        leakStage: leakStage as LeakStage,
+        assignedAgent,
+        amountPaise: Number(amountPaise),
+        triggerEventType: `custom.${leakType.toLowerCase()}`,
+        timestamp: new Date().toISOString(),
+        customer: {
+          id: `cust_custom_${Date.now().toString(36)}`,
+          name: customerName,
+          email: customerEmail,
+          phone: customerPhone,
+          ltvPaise: 5000000,
+          totalSuccessfulTxns: 10,
+          totalFailedTxns: 1,
+          isOptedOut: false,
+          isHumanHandled: false
+        },
+        payload: { description }
+      };
+
+      const result = await revenueOrchestrator.handleEvent(event);
+      res.json({ success: true, message: 'Custom event processed through 9-stage Universal Recovery Loop', result });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   }
 };
