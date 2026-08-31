@@ -20,24 +20,26 @@ export const LiveAgentActivityFeed: React.FC<LiveAgentActivityFeedProps> = ({
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>('TODAY');
 
-  const agentList = [
-    'ALL',
-    'SUBSCRIPTION_RECOVERY',
-    'INFRASTRUCTURE_GUARD',
-    'CHECKOUT_RECOVERY',
-    'MANDATE_RENEWAL',
-    'REFUND_RECOVERY',
-    'RECEIVABLES',
-    'PROMISE_TO_PAY',
-    'CHURN_PREVENTION',
-    'VOICE_RECOVERY',
-    'PAYMENT_DETECTIVE',
-  ];
+  const agentMapDisplay: { [key: string]: string } = {
+    'ALL': 'All 10 Agents',
+    'SUBSCRIPTION_RECOVERY': 'Subscription Recovery',
+    'INFRASTRUCTURE_GUARD': 'Infrastructure Guard',
+    'CHECKOUT_RECOVERY': 'Checkout Recovery',
+    'MANDATE_RENEWAL': 'Mandate Renewal',
+    'REFUND_RECOVERY': 'Refund Recovery',
+    'RECEIVABLES': 'Receivables Agent',
+    'PROMISE_TO_PAY': 'Promise-to-Pay Agent',
+    'CHURN_PREVENTION': 'Churn Prevention',
+    'VOICE_RECOVERY': 'Voice AI Telephony',
+    'PAYMENT_DETECTIVE': 'Payment Detective',
+  };
+
+  const agentKeys = Object.keys(agentMapDisplay);
 
   const filteredActivity = activity.filter((item) => {
     const matchesAgent = selectedAgent === 'ALL' || item.agentType === selectedAgent;
     const isRecovered = item.eventType.includes('RECOVERED') || item.eventType.includes('SUCCESS');
-    const isEscalated = item.eventType.includes('BLOCKED') || item.eventType.includes('HELD');
+    const isEscalated = item.eventType.includes('BLOCKED') || item.eventType.includes('HELD') || item.eventType.includes('CONFLICT');
 
     if (selectedStatus === 'RECOVERED') return matchesAgent && isRecovered;
     if (selectedStatus === 'ESCALATED') return matchesAgent && isEscalated;
@@ -46,48 +48,52 @@ export const LiveAgentActivityFeed: React.FC<LiveAgentActivityFeedProps> = ({
   });
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 font-sans">
       {/* LEFT 3 COLUMNS: FILTERS */}
-      <div className="lg:col-span-3 space-y-4 font-sans">
-        <div className="card-base p-4 space-y-4">
-          <div className="flex items-center gap-2 pb-3 border-b border-[var(--bg-border)] text-[var(--text-primary)] font-syne font-bold text-sm">
+      <div className="lg:col-span-3 space-y-4">
+        <div className="card-base p-5 space-y-5">
+          <div className="flex items-center gap-2 pb-3.5 border-b border-[var(--bg-border)] text-[var(--text-primary)] font-syne font-bold text-base">
             <Filter className="w-4 h-4 text-amber-500" />
             <span>Feed Filters</span>
           </div>
 
           {/* Filter: Agent Module */}
-          <div className="space-y-1.5">
-            <div className="text-[10px] font-mono uppercase text-[var(--text-muted)] font-bold">Agent Module</div>
-            <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
-              {agentList.map((ag) => (
+          <div className="space-y-2">
+            <div className="text-xs font-syne font-bold uppercase tracking-wider text-[var(--text-primary)]">
+              Select Agent Module
+            </div>
+            <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+              {agentKeys.map((key) => (
                 <button
-                  key={ag}
-                  onClick={() => setSelectedAgent(ag)}
-                  className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-mono truncate transition-colors flex items-center justify-between ${
-                    selectedAgent === ag
-                      ? 'bg-amber-500/15 text-amber-600 dark:text-amber-300 font-bold border border-amber-500/40'
+                  key={key}
+                  onClick={() => setSelectedAgent(key)}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-xs font-sans font-semibold truncate transition-colors flex items-center justify-between ${
+                    selectedAgent === key
+                      ? 'bg-amber-500/15 text-amber-600 dark:text-amber-300 font-bold border border-amber-500/40 shadow-sm'
                       : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
                   }`}
                 >
-                  <span className="truncate">{ag === 'ALL' ? 'All Agents' : ag}</span>
-                  {selectedAgent === ag && <span className="text-amber-500">✓</span>}
+                  <span className="truncate">{agentMapDisplay[key]}</span>
+                  {selectedAgent === key && <span className="text-amber-500 font-bold">✓</span>}
                 </button>
               ))}
             </div>
           </div>
 
           {/* Filter: Status */}
-          <div className="space-y-1.5 pt-2 border-t border-[var(--bg-border)]">
-            <div className="text-[10px] font-mono uppercase text-[var(--text-muted)] font-bold">Event Status</div>
-            <div className="grid grid-cols-2 gap-1 text-xs font-mono">
+          <div className="space-y-2 pt-3 border-t border-[var(--bg-border)]">
+            <div className="text-xs font-syne font-bold uppercase tracking-wider text-[var(--text-primary)]">
+              Event Status
+            </div>
+            <div className="grid grid-cols-2 gap-1.5 text-xs font-sans font-semibold">
               {['ALL', 'ACTIVE', 'RECOVERED', 'ESCALATED'].map((st) => (
                 <button
                   key={st}
                   onClick={() => setSelectedStatus(st)}
-                  className={`px-2 py-1.5 rounded-lg text-center transition-colors ${
+                  className={`px-2.5 py-2 rounded-lg text-center transition-colors ${
                     selectedStatus === st
                       ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
-                      : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--bg-border)]'
                   }`}
                 >
                   {st}
@@ -97,21 +103,27 @@ export const LiveAgentActivityFeed: React.FC<LiveAgentActivityFeedProps> = ({
           </div>
 
           {/* Filter: Time Range */}
-          <div className="space-y-1.5 pt-2 border-t border-[var(--bg-border)]">
-            <div className="text-[10px] font-mono uppercase text-[var(--text-muted)] font-bold">Time Horizon</div>
-            <div className="space-y-1 text-xs font-mono">
-              {['LAST_HOUR', 'TODAY', 'LAST_7_DAYS'].map((tr) => (
+          <div className="space-y-2 pt-3 border-t border-[var(--bg-border)]">
+            <div className="text-xs font-syne font-bold uppercase tracking-wider text-[var(--text-primary)]">
+              Time Horizon
+            </div>
+            <div className="space-y-1 text-xs font-sans font-medium">
+              {[
+                { id: 'LAST_HOUR', label: 'Last 1 Hour' },
+                { id: 'TODAY', label: 'Today (24h)' },
+                { id: 'LAST_7_DAYS', label: 'Last 7 Days' }
+              ].map((tr) => (
                 <button
-                  key={tr}
-                  onClick={() => setSelectedTimeRange(tr)}
-                  className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition-colors flex items-center justify-between ${
-                    selectedTimeRange === tr
-                      ? 'text-amber-600 dark:text-amber-400 font-bold bg-[var(--bg-elevated)]'
+                  key={tr.id}
+                  onClick={() => setSelectedTimeRange(tr.id)}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors flex items-center justify-between ${
+                    selectedTimeRange === tr.id
+                      ? 'text-amber-600 dark:text-amber-400 font-bold bg-[var(--bg-elevated)] border border-[var(--bg-border)]'
                       : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
-                  <span>{tr.replace(/_/g, ' ')}</span>
-                  {selectedTimeRange === tr && <span className="text-amber-500">●</span>}
+                  <span>{tr.label}</span>
+                  {selectedTimeRange === tr.id && <span className="text-amber-500 font-bold">●</span>}
                 </button>
               ))}
             </div>
@@ -122,15 +134,15 @@ export const LiveAgentActivityFeed: React.FC<LiveAgentActivityFeedProps> = ({
       {/* RIGHT 9 COLUMNS: REAL-TIME STREAMING FEED */}
       <div className="lg:col-span-9 space-y-4">
         <div className="flex items-center justify-between px-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-            <h3 className="font-syne font-bold text-base text-[var(--text-primary)]">Live Agent Stream</h3>
-            <span className="text-xs font-mono text-[var(--text-secondary)]">({filteredActivity.length} events logged)</span>
+            <h3 className="font-syne font-bold text-lg text-[var(--text-primary)]">Live Agent Stream</h3>
+            <span className="text-xs font-sans text-[var(--text-secondary)] font-semibold">({filteredActivity.length} events logged)</span>
           </div>
-          <div className="text-xs font-mono text-[var(--text-muted)]">Real-time WebSocket &amp; HMAC Webhooks</div>
+          <div className="text-xs font-sans font-medium text-[var(--text-secondary)]">Real-time WebSocket &amp; HMAC Webhooks</div>
         </div>
 
-        <div className="space-y-3.5">
+        <div className="space-y-4">
           {filteredActivity.map((item) => {
             const isRecovered = item.eventType.includes('RECOVERED') || item.eventType.includes('SUCCESS');
             const isEscalated = item.eventType.includes('BLOCKED') || item.eventType.includes('HELD') || item.eventType.includes('CONFLICT');
@@ -140,39 +152,41 @@ export const LiveAgentActivityFeed: React.FC<LiveAgentActivityFeedProps> = ({
               return (
                 <div
                   key={item.id}
-                  className="card-base card-recovered p-4 space-y-2.5 cursor-pointer hover:border-emerald-500 transition-all"
+                  className="card-base card-recovered p-5 space-y-3 cursor-pointer hover:border-emerald-500 transition-all shadow-sm"
                   onClick={() => item.leakId && onSelectCaseById(item.leakId)}
                 >
-                  <div className="flex items-center justify-between border-b border-[var(--bg-border)] pb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="badge-pill badge-recovered">✅ RECOVERED</span>
-                      <span className="text-xs font-mono text-[var(--text-secondary)] font-semibold">{item.agentType}</span>
+                  <div className="flex items-center justify-between border-b border-[var(--bg-border)] pb-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className="badge-pill badge-recovered text-xs">✅ RECOVERED</span>
+                      <span className="text-xs font-syne font-bold text-[var(--text-primary)]">
+                        {item.agentType ? (agentMapDisplay[item.agentType] || item.agentType) : 'System Agent'}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="font-syne font-bold text-amber-600 dark:text-amber-400 text-sm">
+                      <span className="font-syne font-extrabold text-amber-600 dark:text-amber-400 text-base">
                         {formatPaiseToINR(item.amountAtRiskPaise || 249900)}
                       </span>
-                      <span className="text-xs font-mono text-[var(--text-muted)]">
+                      <span className="text-xs font-mono text-[var(--text-secondary)]">
                         {new Date(item.timestamp).toLocaleTimeString()} IST
                       </span>
                     </div>
                   </div>
 
-                  <div className="font-sans text-xs text-[var(--text-primary)]">
-                    <div className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  <div className="font-sans text-sm text-[var(--text-primary)]">
+                    <div className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                       <span>{item.message}</span>
                     </div>
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--bg-border)] text-[11px] font-mono text-[var(--text-secondary)] space-y-1">
+                  <div className="p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--bg-border)] text-xs font-mono text-[var(--text-secondary)] space-y-1.5">
                     <div>
                       <span className="text-purple-600 dark:text-purple-400 font-bold">EVENT ▸ </span>
-                      <span className="text-[var(--text-primary)]">{item.eventType}</span>
+                      <span className="text-[var(--text-primary)] font-semibold">{item.eventType}</span>
                     </div>
                     <div>
                       <span className="text-amber-600 dark:text-amber-400 font-bold">RESULT ▸ </span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Payment received via Razorpay Smart Link. Revenue saved.</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Payment captured via Razorpay Smart Link. Revenue secured.</span>
                     </div>
                   </div>
                 </div>
@@ -184,32 +198,34 @@ export const LiveAgentActivityFeed: React.FC<LiveAgentActivityFeedProps> = ({
               return (
                 <div
                   key={item.id}
-                  className="card-base card-at-risk p-4 space-y-2.5 cursor-pointer hover:border-red-500 transition-all"
+                  className="card-base card-at-risk p-5 space-y-3 cursor-pointer hover:border-red-500 transition-all shadow-sm"
                   onClick={() => item.leakId && onSelectCaseById(item.leakId)}
                 >
-                  <div className="flex items-center justify-between border-b border-[var(--bg-border)] pb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="badge-pill badge-escalated">▲ SAFETY GATE / ESCALATED</span>
-                      <span className="text-xs font-mono text-[var(--text-secondary)] font-semibold">{item.agentType}</span>
+                  <div className="flex items-center justify-between border-b border-[var(--bg-border)] pb-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className="badge-pill badge-escalated text-xs">▲ SAFETY GATE / ESCALATED</span>
+                      <span className="text-xs font-syne font-bold text-[var(--text-primary)]">
+                        {item.agentType ? (agentMapDisplay[item.agentType] || item.agentType) : 'System Agent'}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="font-syne font-bold text-amber-600 dark:text-amber-400 text-sm">
+                      <span className="font-syne font-extrabold text-amber-600 dark:text-amber-400 text-base">
                         {formatPaiseToINR(item.amountAtRiskPaise || 2500000)}
                       </span>
-                      <span className="text-xs font-mono text-[var(--text-muted)]">
+                      <span className="text-xs font-mono text-[var(--text-secondary)]">
                         {new Date(item.timestamp).toLocaleTimeString()} IST
                       </span>
                     </div>
                   </div>
 
-                  <div className="text-xs text-red-500 font-semibold flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5" />
+                  <div className="text-sm text-red-500 font-semibold flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
                     <span>{item.message}</span>
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--bg-border)] text-[11px] font-mono text-[var(--text-secondary)]">
+                  <div className="p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--bg-border)] text-xs font-mono text-[var(--text-secondary)]">
                     <span className="text-red-500 font-bold">REASONING ▸ </span>
-                    <span className="text-[var(--text-primary)]">
+                    <span className="text-[var(--text-primary)] font-medium">
                       Deterministic Safety Engine policy triggered. Action held in merchant approval queue.
                     </span>
                   </div>
@@ -221,32 +237,34 @@ export const LiveAgentActivityFeed: React.FC<LiveAgentActivityFeedProps> = ({
             return (
               <div
                 key={item.id}
-                className="card-base card-amber p-4 space-y-2.5 cursor-pointer hover:border-amber-500 transition-all"
+                className="card-base card-amber p-5 space-y-3 cursor-pointer hover:border-amber-500 transition-all shadow-sm"
                 onClick={() => item.leakId && onSelectCaseById(item.leakId)}
               >
-                <div className="flex items-center justify-between border-b border-[var(--bg-border)] pb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="badge-pill badge-active">● ACTIVE ACTION</span>
-                    <span className="text-xs font-mono text-[var(--text-secondary)] font-semibold">{item.agentType}</span>
+                <div className="flex items-center justify-between border-b border-[var(--bg-border)] pb-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="badge-pill badge-active text-xs">● ACTIVE ACTION</span>
+                    <span className="text-xs font-syne font-bold text-[var(--text-primary)]">
+                      {item.agentType ? (agentMapDisplay[item.agentType] || item.agentType) : 'System Agent'}
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-syne font-bold text-amber-600 dark:text-amber-400 text-sm">
+                    <span className="font-syne font-extrabold text-amber-600 dark:text-amber-400 text-base">
                       {formatPaiseToINR(item.amountAtRiskPaise || 249900)}
                     </span>
-                    <span className="text-xs font-mono text-[var(--text-muted)]">
+                    <span className="text-xs font-mono text-[var(--text-secondary)]">
                       {new Date(item.timestamp).toLocaleTimeString()} IST
                     </span>
                   </div>
                 </div>
 
-                <div className="text-xs text-[var(--text-primary)] font-medium">
+                <div className="text-sm text-[var(--text-primary)] font-semibold">
                   {item.message}
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--bg-border)] text-[11px] font-mono text-[var(--text-secondary)] space-y-1">
+                <div className="p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--bg-border)] text-xs font-mono text-[var(--text-secondary)] space-y-1.5">
                   <div>
                     <span className="text-purple-600 dark:text-purple-400 font-bold">STAGE ▸ </span>
-                    <span className="text-[var(--text-primary)]">Action Dispatched • Awaiting customer checkout</span>
+                    <span className="text-[var(--text-primary)] font-medium">Action Dispatched • Awaiting customer checkout</span>
                   </div>
                 </div>
               </div>

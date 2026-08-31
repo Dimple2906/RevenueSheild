@@ -127,12 +127,12 @@ export const AuditTrailView: React.FC<AuditTrailViewProps> = ({ auditLogs }) => 
                     {isExpanded ? <ChevronDown className="w-4 h-4 text-amber-500" /> : <ChevronRight className="w-4 h-4" />}
                   </span>
 
-                  <span className="text-[var(--text-secondary)] text-[11px]">
+                  <span className="text-[var(--text-secondary)] text-xs font-mono font-medium">
                     {new Date(log.timestamp).toLocaleTimeString()} IST
                   </span>
 
                   <span
-                    className={`badge-pill text-[10px] ${
+                    className={`badge-pill text-xs font-bold ${
                       isSuccess
                         ? 'badge-recovered'
                         : isHeld
@@ -145,19 +145,19 @@ export const AuditTrailView: React.FC<AuditTrailViewProps> = ({ auditLogs }) => 
                     {log.eventType}
                   </span>
 
-                  <span className="text-[var(--text-primary)] font-bold hidden sm:inline truncate max-w-xs font-sans">
+                  <span className="text-[var(--text-primary)] font-syne font-bold text-xs sm:text-sm hidden sm:inline truncate max-w-xs">
                     {log.agentType || 'SYSTEM'}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-3">
                   {log.amountAtRiskPaise && (
-                    <span className="font-syne font-bold text-amber-600 dark:text-amber-400">
+                    <span className="font-syne font-extrabold text-amber-600 dark:text-amber-400 text-sm sm:text-base">
                       {formatPaiseToINR(log.amountAtRiskPaise)}
                     </span>
                   )}
                   {log.leakId && (
-                    <span className="text-[var(--text-muted)] text-[10px] hidden md:inline">
+                    <span className="text-[var(--text-secondary)] text-xs font-mono font-medium hidden md:inline">
                       {log.leakId}
                     </span>
                   )}
@@ -165,7 +165,7 @@ export const AuditTrailView: React.FC<AuditTrailViewProps> = ({ auditLogs }) => 
               </div>
 
               {/* Message Summary */}
-              <div className="mt-2 text-[var(--text-primary)] text-xs font-sans pl-7 font-medium">
+              <div className="mt-2.5 text-[var(--text-primary)] text-xs sm:text-sm font-sans pl-7 font-semibold">
                 {log.message}
               </div>
 
