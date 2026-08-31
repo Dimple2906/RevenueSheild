@@ -1,0 +1,225 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         String    @default("MERCHANT_ADMIN")
+  merchantId   String
+  merchant     Merchant  @relation(fields: [merchantId], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Merchant {
+  id                  String             @id @default(uuid())
+  name                String
+  slug                String             @unique
+  razorpayKeyId       String?
+  razorpayKeySecret   String?
+  webhookSecret       String?
+  currency            String             @default("INR")
+  users               User[]
+  customers           Customer[]
+  revenueLeaks        RevenueLeak[]
+  policies            MerchantPolicy?
+  auditLogs           AuditLog[]
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+}
+
+model MerchantPolicy {
+  id                          String    @id @default(uuid())
+  merchantId                  String    @unique
+  merchant                    Merchant  @relation(fields: [merchantId], references: [id])
+  maxAutonomousAmountPaise    Int       @default(500000) // ₹5,000 max autonomous action
+  maxDiscountPercentage       Int       @default(15)     // Max 15% discount
+  maxRecoveryAttempts         Int       @default(3)      // Max 3 attempts before escalate
+  customerCooldownHours       Int       @default(24)     // 24 hours between direct touches
+  humanApprovalThresholdPaise Int       @default(1000000)// ₹10,000+ requires human sign-off
+  allowVoiceRecovery          Boolean   @default(true)
+  allowStoreCreditCounter     Boolean   @default(true)
+  optOutKeywords              String    @default("STOP,UNSUBSCRIBE,OPTOUT,CANCEL,DND")
+  updatedAt                   DateTime  @updatedAt
+}
+
+model Customer {
+  id                   String            @id @default(uuid())
+  merchantId           String
+  merchant             Merchant          @relation(fields: [merchantId], references: [id])
+  razorpayCustomerId   String?
+  name                 String
+  email                String
+  phone                String
+  ltvPaise             Int               @default(0)
+  totalSuccessfulTxns  Int               @default(0)
+  totalFailedTxns      Int               @default(0)
+  isOptedOut           Boolean           @default(false)
+  isHumanHandled       Boolean           @default(false)
+  lastContactedAt      DateTime?
+  revenueLeaks         RevenueLeak[]
+  recoverySessions     RecoverySession[]
+  churnScores          ChurnRiskScore[]
+  promises             PaymentPromise[]
+  refundIntercepts     RefundIntercept[]
+  mandates             Mandate[]
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+}
+
+model RevenueLeak {
+  id                   String            @id @default(uuid())
+  merchantId           String
+  merchant             Merchant          @relation(fields: [merchantId], references: [id])
+  customerId           String?
+  customer             Customer?         @relation(fields: [customerId], references: [id])
+  leakType             String
+  leakStage            String
+  amountAtRiskPaise    Int
+  amountRecoveredPaise Int               @default(0)
+  priorityScore        Float             @default(0.5)
+  triggerEventType     String
+  triggerRazorpayId    String?
+  status               String            @default("DETECTED")
+  assignedAgent        String
+  rootCauseDiagnosis   String?
+  aiConfidenceScore    Float?
+  recoveryStrategy     String?
+  requiresHumanReview  Boolean           @default(false)
+  recoverySessions     RecoverySession[]
+  auditLogs            AuditLog[]
+  detectedAt           DateTime          @default(now())
+  resolvedAt           DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+}
+
+model RecoverySession {
+  id                   String            @id @default(uuid())
+  leakId               String
+  leak                 RevenueLeak       @relation(fields: [leakId], references: [id])
+  customerId           String?
+  customer             Customer?         @relation(fields: [customerId], references: [id])
+  agentType            String
+  currentStep          String            @default("DIAGNOSE")
+  attemptCount         Int               @default(1)
+  status               String            @default("ANALYZING")
+  actions              RecoveryAction[]
+  safetyChecks         SafetyCheck[]
+  agentRuns            AgentRun[]
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+}
+
+model RecoveryAction {
+  id                   String            @id @default(uuid())
+  sessionId            String
+  session              RecoverySession   @relation(fields: [sessionId], references: [id])
+  actionType           String            // e.g. CREATE_PAYMENT_LINK, ISSUE_INVOICE, OFFER_CREDIT, SEND_VOICE_DUNNING
+  proposedPayload      String            // JSON encoded payload
+  razorpayResourceId   String?           // plink_xxxx, inv_xxxx, rfnd_xxxx
+  razorpayResourceUrl  String?
+  amountPaise          Int
+  discountPaise        Int               @default(0)
+  status               String            // PENDING, EXECUTED, FAILED, CANCELLED, RECOVERED
+  errorMessage         String?
+  isSimulated          Boolean           @default(false)
+  executedAt           DateTime?
+  createdAt            DateTime          @default(now())
+}
+
+model SafetyCheck {
+  id                   String            @id @default(uuid())
+  sessionId            String
+  session              RecoverySession   @relation(fields: [sessionId], references: [id])
+  status               String
+  passed               Boolean
+  policyViolations     String            // JSON encoded string array
+  checkedRules         String            // JSON encoded rule objects
+  humanApprovedBy      String?
+  humanApprovedAt      DateTime?
+  createdAt            DateTime          @default(now())
+}
+
+model AgentRun {
+  id                   String            @id @default(uuid())
+  sessionId            String
+  session              RecoverySession   @relation(fields: [sessionId], references: [id])
+  agentType            String
+  promptTokens         Int               @default(0)
+  completionTokens     Int               @default(0)
+  latencyMs            Int
+  structuredDecision   String            // JSON encoded decision
+  confidence           Float
+  createdAt            DateTime          @default(now())
+}
+
+model AuditLog {
+  id                   String            @id @default(uuid())
+  merchantId           String
+  merchant             Merchant          @relation(fields: [merchantId], references: [id])
+  leakId               String?
+  leak                 RevenueLeak?      @relation(fields: [leakId], references: [id])
+  agentType            String?
+  eventType            String            // LEAK_DETECTED, AI_DIAGNOSED, SAFETY_EVALUATED, ACTION_EXECUTED, PAYMENT_RECOVERED, ESCALATED
+  message              String
+  metadata             String?           // JSON encoded metadata
+  amountAtRiskPaise    Int?
+  amountRecoveredPaise Int?
+  createdAt            DateTime          @default(now())
+}
+
+model PaymentPromise {
+  id                   String            @id @default(uuid())
+  customerId           String
+  customer             Customer          @relation(fields: [customerId], references: [id])
+  promisedAmountPaise  Int
+  promisedDate         DateTime
+  extractedFromText    String
+  status               String            @default("PENDING") // PENDING, FULFILLED, BREACHED
+  paymentLinkId        String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+}
+
+model RefundIntercept {
+  id                      String         @id @default(uuid())
+  customerId              String
+  customer                Customer       @relation(fields: [customerId], references: [id])
+  originalRefundPaise     Int
+  offeredStoreCreditPaise Int
+  bonusDiscountPaise      Int            @default(0)
+  customerAccepted        Boolean?
+  status                  String         @default("PENDING") // PENDING, ACCEPTED_CREDIT, REJECTED_REFUND_PROCESSED
+  createdAt               DateTime       @default(now())
+}
+
+model ChurnRiskScore {
+  id                   String            @id @default(uuid())
+  customerId           String
+  customer             Customer          @relation(fields: [customerId], references: [id])
+  riskScore            Float             // 0.0 - 1.0
+  riskLevel            String            // LOW, MEDIUM, HIGH, CRITICAL
+  contributingFactors  String            // JSON string array
+  retentionOffer       String?
+  createdAt            DateTime          @default(now())
+}
+
+model Mandate {
+  id                   String            @id @default(uuid())
+  customerId           String
+  customer             Customer          @relation(fields: [customerId], references: [id])
+  mandateType          String            // UPI_AUTOPAY, CARD_MANDATE, ENACH
+  expiresAt            DateTime
+  maxAmountPaise       Int
+  status               String            @default("ACTIVE") // ACTIVE, EXPIRING_SOON, EXPIRED, RENEWED
+  createdAt            DateTime          @default(now())
+}

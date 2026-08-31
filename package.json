@@ -1,0 +1,25 @@
+{
+  "name": "revenueshield-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RevenueShield — AI Revenue Recovery OS for Razorpay Buildathon",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "npm --workspace=@revenueshield/api run dev",
+    "dev:web": "npm --workspace=@revenueshield/web run dev",
+    "build": "npm --workspaces run build",
+    "test": "npm --workspace=@revenueshield/safety run test && npm --workspace=@revenueshield/shared run test",
+    "db:generate": "npm --workspace=@revenueshield/database run generate",
+    "db:push": "npm --workspace=@revenueshield/database run push",
+    "db:seed": "npm --workspace=@revenueshield/database run seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}
