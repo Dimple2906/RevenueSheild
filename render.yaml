@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: revenueshield
+    env: node
+    plan: free
+    buildCommand: npm install && npm run db:generate && npm run db:push && npm run db:seed && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:./packages/database/prisma/dev.db
+      - key: RAZORPAY_KEY_ID
+        value: rzp_test_demo12345678
+      - key: RAZORPAY_KEY_SECRET
+        value: secret_demo12345678
+      - key: RAZORPAY_WEBHOOK_SECRET
+        value: webhook_secret_demo
